@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  # The reverse proxy service (Træfik)
+  reverse-proxy:
+    image: traefik  # The official Traefik docker image
+    command: --api --docker  # Enables the web UI and tells Træfik to listen to docker
+    ports:
+      - "80:80"      # The HTTP port
+      - "443:443"    # The HTTPS port
+      - "8080:8080"  # The Web UI (enabled by --api)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # So that Traefik can listen to the Docker events
+
+  zvonky.perlur.cloud:
+    build: ./
+    labels:
+      - "traefik.frontend.rule=Host:zvonky.perlur.cloud.localhost"
+    volumes:
+      - ./src/:/var/www/laravel/html
+
+  db.zvonky.perlur.cloud:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: zvonky_perlur_cloud
+      POSTGRES_PASSWORD: secret_password
+
